@@ -3,18 +3,15 @@ import time
 import logging
 from djitellopy import Tello, TelloException
 
-# --- Logger Setup ---
 logging.basicConfig(
     level=logging.INFO,
     format='[%(levelname)s] %(asctime)s - %(message)s',
     datefmt='%H:%M:%S'
 )
 
-# --- ArUco Detector Setup ---
 ARUCO_DICT = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
 DETECTOR = cv2.aruco.ArucoDetector(ARUCO_DICT, cv2.aruco.DetectorParameters())
 
-# --- Safe Command Wrapper ---
 def safe_command(command_func, *args, retries=3, delay=1, description="command"):
     for attempt in range(1, retries + 1):
         try:
@@ -27,7 +24,6 @@ def safe_command(command_func, *args, retries=3, delay=1, description="command")
     logging.error(f"Could not complete {description} after {retries} attempts.")
     return False
 
-# --- Safe Battery Retrieval ---
 def get_battery_level(drone, retries=3, delay=1):
     for attempt in range(1, retries + 1):
         try:
@@ -40,7 +36,6 @@ def get_battery_level(drone, retries=3, delay=1):
     logging.error("Failed to retrieve battery level after retries.")
     return None
 
-# --- Main Drone Logic ---
 def main():
     logging.info("Connecting to Tello drone...")
     drone = Tello()
@@ -69,7 +64,7 @@ def main():
             safe_command(drone.land, description="emergency landing")
             return
 
-        if battery >= 45:
+        if battery >= 85:
             logging.info("Battery level sufficient. Proceeding to land safely.")
             safe_command(drone.land, description="landing")
         else:
@@ -118,7 +113,6 @@ def main():
                 logging.warning("Marker not found after 12 attempts. Landing as fallback.")
                 safe_command(drone.land, description="fallback landing")
 
-        # --- Cleanup ---
         safe_command(drone.streamoff, description="stop video stream")
         cv2.destroyAllWindows()
         drone.end()
@@ -138,6 +132,5 @@ def main():
         cv2.destroyAllWindows()
         drone.end()
 
-# --- Entry Point ---
 if __name__ == "__main__":
     main()
